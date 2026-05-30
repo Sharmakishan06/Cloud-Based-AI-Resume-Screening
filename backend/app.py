@@ -388,38 +388,137 @@ if __name__ == '__main__':
 # API – Dataset / Seed (auto-loads Resume.csv)
 # ─────────────────────────────────────────
 
-@app.route('/api/seed', methods=['POST'])
-def seed_dataset():
-    """Seed the database from Resume.csv dataset."""
-    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '..', 'dataset', 'Resume.csv')
-    if not os.path.exists(csv_path):
-        return jsonify({'error': 'Dataset not found. Place Resume.csv in the dataset/ folder.'}), 404
+def _find_csv():
+    """Find Resume.csv — checks multiple possible locations."""
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        os.path.join(backend_dir, '..', 'dataset', 'Resume.csv'),
+        os.path.join(backend_dir, 'dataset', 'Resume.csv'),
+        os.path.join(os.getcwd(), 'dataset', 'Resume.csv'),
+        os.path.join(os.getcwd(), '..', 'dataset', 'Resume.csv'),
+        '/opt/render/project/src/dataset/Resume.csv',
+    ]
+    for p in candidates:
+        norm = os.path.normpath(p)
+        if os.path.exists(norm):
+            return norm
+    return None
+
+
+import threading
+
+# Seed job status tracker
+_seed_status = {'running': False, 'done': False, 'error': None, 'progress': '', 'result': None}
+
+
+def _run_seed_background(csv_path, db_path, n):
+    """Runs seeding in a background thread to avoid request timeout."""
+    global _seed_status
+    import sys, traceback
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    if backend_dir not in sys.path:
+        sys.path.insert(0, backend_dir)
     try:
-        import sys
-        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        _seed_status.update({'running': True, 'done': False, 'error': None, 'progress': 'Starting...', 'result': None})
+        for mod in ['seed_data', '_seed_score']:
+            if mod in sys.modules:
+                del sys.modules[mod]
         from seed_data import seed
-        n = int(request.get_json(silent=True, force=True).get('per_category', 10)
-                if request.data else 10)
-        seed(csv_path, DATABASE, n)
-        conn = get_db()
-        stats = {
+        _seed_status['progress'] = 'Processing resumes...'
+        seed(csv_path, db_path, n)
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+        result = {
             'total_jobs':       conn.execute("SELECT COUNT(*) FROM jobs").fetchone()[0],
             'total_candidates': conn.execute("SELECT COUNT(*) FROM candidates").fetchone()[0],
             'shortlisted':      conn.execute("SELECT COUNT(*) FROM candidates WHERE shortlisted=1").fetchone()[0],
         }
         conn.close()
-        return jsonify({'message': f'Dataset seeded successfully ({n} resumes per category)', **stats})
+        _seed_status.update({'running': False, 'done': True, 'progress': 'Complete!', 'result': result})
+        print(f"[SEED] Done: {result}")
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        tb = traceback.format_exc()
+        print(f"[SEED ERROR] {tb}")
+        _seed_status.update({'running': False, 'done': False, 'error': str(e), 'progress': 'Failed'})
+
+
+@app.route('/api/seed', methods=['POST'])
+def seed_dataset():
+    """Starts seeding in background — returns 202 immediately to avoid timeout."""
+    global _seed_status
+
+    if _seed_status['running']:
+        return jsonify({'message': 'Seeding already in progress...', 'progress': _seed_status['progress']}), 202
+
+    csv_path = _find_csv()
+    if not csv_path:
+        return jsonify({'error': 'Resume.csv not found on server.'}), 404
+
+    n = 10
+    try:
+        body = request.get_json(silent=True, force=True)
+        if body and 'per_category' in body:
+            n = int(body['per_category'])
+    except Exception:
+        n = 10
+
+    # Reset status and start background thread
+    _seed_status = {'running': True, 'done': False, 'error': None, 'progress': 'Starting...', 'result': None}
+    t = threading.Thread(target=_run_seed_background, args=(csv_path, DATABASE, n), daemon=True)
+    t.start()
+
+    return jsonify({
+        'message': f'Seeding started in background ({n} resumes per category). Check /api/seed/status for progress.',
+        'status_url': '/api/seed/status'
+    }), 202
+
+
+@app.route('/api/seed/status', methods=['GET'])
+def seed_status():
+    """Check the progress of the background seeding job."""
+    global _seed_status
+    if _seed_status['done'] and _seed_status['result']:
+        return jsonify({
+            'status': 'complete',
+            'message': 'Dataset seeded successfully!',
+            **_seed_status['result']
+        })
+    elif _seed_status['running']:
+        return jsonify({'status': 'running', 'progress': _seed_status['progress']})
+    elif _seed_status['error']:
+        return jsonify({'status': 'error', 'error': _seed_status['error']}), 500
+    else:
+        return jsonify({'status': 'idle', 'message': 'No seed job running. POST to /api/seed to start.'})
+
+
+@app.route('/api/debug', methods=['GET'])
+def debug_paths():
+    """Debug endpoint — shows file paths on the server."""
+    backend_dir = os.path.dirname(os.path.abspath(__file__))
+    cwd = os.getcwd()
+    csv_path = _find_csv()
+
+    def safe_ls(path):
+        try:
+            return os.listdir(path) if os.path.exists(path) else ['(not found)']
+        except Exception as ex:
+            return [str(ex)]
+
+    return jsonify({
+        'cwd': cwd,
+        'backend_dir': backend_dir,
+        'csv_found': csv_path,
+        'cwd_contents':     safe_ls(cwd),
+        'backend_contents': safe_ls(backend_dir),
+        'dataset_contents': safe_ls(os.path.join(backend_dir, '..', 'dataset')),
+    })
 
 
 @app.route('/api/dataset/categories', methods=['GET'])
 def get_categories():
     """Return all distinct job categories available in the dataset."""
-    csv_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            '..', 'dataset', 'Resume.csv')
-    if not os.path.exists(csv_path):
+    csv_path = _find_csv()
+    if not csv_path:
         return jsonify({'categories': [], 'total': 0})
     import csv as _csv
     from collections import Counter
