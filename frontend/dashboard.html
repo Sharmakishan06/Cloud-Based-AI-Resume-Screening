@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | RecruitAI</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-body">
+
+<!-- ── SIDEBAR ──────────────────────────────── -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⚡</div>
+    <span>RecruitAI</span>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" onclick="showSection('overview')"><span class="ni">📊</span> Overview</a>
+    <a href="#" class="nav-item" onclick="showSection('jobs')"><span class="ni">💼</span> Jobs</a>
+    <a href="#" class="nav-item" onclick="showSection('upload')"><span class="ni">📤</span> Upload Resumes</a>
+    <a href="#" class="nav-item" onclick="showSection('candidates')"><span class="ni">👥</span> Candidates</a>
+    <a href="index.html" class="nav-item"><span class="ni">🏠</span> Home</a>
+  </nav>
+</div>
+
+<!-- ── MAIN ─────────────────────────────────── -->
+<div class="main-content">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    <h1 class="page-title" id="page-title">Overview</h1>
+    <div class="topbar-right">
+      <span class="status-dot"></span> System Online
+    </div>
+  </div>
+
+  <!-- ── OVERVIEW SECTION ── -->
+  <section id="section-overview" class="dash-section active">
+    <div class="stats-row">
+      <div class="stat-card"><div class="sc-icon">💼</div><div class="sc-val" id="ov-jobs">—</div><div class="sc-lbl">Total Jobs</div></div>
+      <div class="stat-card"><div class="sc-icon">📄</div><div class="sc-val" id="ov-candidates">—</div><div class="sc-lbl">Resumes Screened</div></div>
+      <div class="stat-card"><div class="sc-icon">✅</div><div class="sc-val" id="ov-shortlisted">—</div><div class="sc-lbl">Shortlisted</div></div>
+      <div class="stat-card"><div class="sc-icon">🎯</div><div class="sc-val" id="ov-score">—</div><div class="sc-lbl">Avg Match Score</div></div>
+    </div>
+    <div class="card mt-20">
+      <h2 class="card-title">Recent Activity</h2>
+      <table class="data-table" id="recent-table">
+        <thead><tr><th>Candidate</th><th>Job</th><th>Match Score</th><th>Status</th></tr></thead>
+        <tbody id="recent-body"><tr><td colspan="4" class="loading-cell">Loading...</td></tr></tbody>
+      </table>
+    
+    <div class="card mt-20" id="dataset-panel">
+      <h2 class="card-title">📦 Resume Dataset  <span style="font-weight:400;font-size:.85rem;color:var(--text3)">2,484 real resumes · 24 job categories (Kaggle)</span></h2>
+      <div id="dataset-categories" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem">
+        <span style="color:var(--text3);font-size:.85rem">Loading categories…</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+        <div class="form-group" style="margin:0">
+          <label style="font-size:.82rem">Resumes per category</label>
+          <select id="seed-per-cat" class="form-control" style="width:100px;margin-top:.2rem">
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <button id="seed-btn" class="btn btn-primary" style="margin-top:1.2rem"
+          onclick="seedDataset(document.getElementById('seed-per-cat').value)">
+          🌱 Load Dataset into System
+        </button>
+        <p style="font-size:.82rem;color:var(--text2);margin:0;max-width:420px;margin-top:1rem">
+          Clicking <b>Load Dataset</b> will import real resumes from all 24 categories into the system, create job postings, score candidates using AI, and auto-shortlist the best matches.
+        </p>
+      </div>
+    </div>
+</div>
+  </section>
+
+  <!-- ── JOBS SECTION ── -->
+  <section id="section-jobs" class="dash-section">
+    <div class="section-header">
+      <h2>Job Postings</h2>
+      <button class="btn btn-primary" onclick="showJobModal()">+ New Job</button>
+    </div>
+    <div id="jobs-list" class="jobs-grid">
+      <div class="loading-cell">Loading jobs...</div>
+    </div>
+  </section>
+
+  <!-- ── UPLOAD SECTION ── -->
+  <section id="section-upload" class="dash-section">
+    <div class="card">
+      <h2 class="card-title">Upload Resumes</h2>
+      <div class="form-group">
+        <label>Select Job Position</label>
+        <select id="upload-job-select" class="form-control">
+          <option value="">— Select Job —</option>
+        </select>
+      </div>
+      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('resume-input').click()">
+        <div class="dz-icon">📁</div>
+        <p><b>Click to browse</b> or drag & drop resumes here</p>
+        <p class="dz-sub">Supports PDF, DOCX, TXT · Max 16MB per file</p>
+        <input type="file" id="resume-input" multiple accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="handleFileSelect(this.files)"/>
+      </div>
+      <div id="file-list" class="file-list"></div>
+      <button class="btn btn-primary mt-20" id="upload-btn" onclick="uploadResumes()" disabled>
+        🚀 Screen Resumes
+      </button>
+    </div>
+    <div id="upload-results" class="card mt-20" style="display:none">
+      <h2 class="card-title">Screening Results</h2>
+      <div id="results-body"></div>
+    </div>
+  </section>
+
+  <!-- ── CANDIDATES SECTION ── -->
+  <section id="section-candidates" class="dash-section">
+    <div class="section-header">
+      <h2>All Candidates</h2>
+      <div class="filter-row">
+        <select id="filter-job" class="form-control" onchange="loadCandidates()">
+          <option value="">All Jobs</option>
+        </select>
+        <label class="toggle-label">
+          <input type="checkbox" id="shortlist-filter" onchange="loadCandidates()"/> Shortlisted Only
+        </label>
+      </div>
+    </div>
+    <div id="candidates-container">
+      <div class="loading-cell">Select a job or load all candidates...</div>
+    </div>
+  </section>
+
+</div><!-- /main -->
+
+<!-- ── JOB MODAL ── -->
+<div class="modal-overlay" id="job-modal" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Create New Job</h3>
+      <button class="modal-close" onclick="closeJobModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Job Title *</label>
+      <input type="text" id="job-title" class="form-control" placeholder="e.g. Python Backend Developer"/>
+    </div>
+    <div class="form-group">
+      <label>Job Description *</label>
+      <textarea id="job-desc" class="form-control" rows="5" placeholder="Describe the role, responsibilities, and requirements..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Required Skills (comma separated)</label>
+      <input type="text" id="job-skills" class="form-control" placeholder="Python, Flask, AWS, Docker, SQL"/>
+    </div>
+    <div class="form-group">
+      <label>Years of Experience Required</label>
+      <input type="number" id="job-exp" class="form-control" value="0" min="0" max="20"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeJobModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="createJob()">Create Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CANDIDATE DETAIL MODAL ── -->
+<div class="modal-overlay" id="cand-modal" style="display:none">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 id="cand-modal-name">Candidate Detail</h3>
+      <button class="modal-close" onclick="closeCandModal()">✕</button>
+    </div>
+    <div id="cand-modal-body"></div>
+  </div>
+</div>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>

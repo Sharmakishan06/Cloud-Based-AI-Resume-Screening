@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Resume Screener | Cloud Recruitment System</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ── NAVBAR ───────────────────────────────── -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="brand-icon">⚡</div>
+    <span>RecruitAI</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="dashboard.html" class="btn-nav">Dashboard →</a></li>
+  </ul>
+  <button class="nav-toggle" onclick="toggleNav()">☰</button>
+</nav>
+
+<!-- ── HERO ─────────────────────────────────── -->
+<section id="home" class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">🎓 MCA Final Year Project · O24MCA110066</div>
+    <h1>Cloud-Based <span class="gradient-text">AI Resume Screening</span><br/>for Recruitment Automation</h1>
+    <p class="hero-sub">Upload resumes, define job requirements, and let AI rank candidates automatically using TF-IDF matching, skills analysis, and experience scoring — all on the cloud.</p>
+    <div class="hero-cta">
+      <a href="dashboard.html" class="btn btn-primary">🚀 Open Dashboard</a>
+      <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num" id="stat-jobs">0</span><span class="stat-label">Active Jobs</span></div>
+      <div class="stat"><span class="stat-num" id="stat-candidates">0</span><span class="stat-label">Resumes Screened</span></div>
+      <div class="stat"><span class="stat-num" id="stat-shortlisted">0</span><span class="stat-label">Shortlisted</span></div>
+      <div class="stat"><span class="stat-num" id="stat-score">0%</span><span class="stat-label">Avg Match Score</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="resume-card card-1">
+      <div class="rc-header"><div class="rc-avatar">KK</div><div><b>Kishan Kumar</b><br/><small>Python Developer</small></div></div>
+      <div class="rc-skills"><span class="skill-tag">Python</span><span class="skill-tag">Flask</span><span class="skill-tag">AWS</span></div>
+      <div class="rc-score"><div class="score-bar"><div class="score-fill" style="width:92%"></div></div><b>92% Match</b></div>
+    </div>
+    <div class="resume-card card-2">
+      <div class="rc-header"><div class="rc-avatar" style="background:#4ade80;">AS</div><div><b>Ananya Sharma</b><br/><small>Data Scientist</small></div></div>
+      <div class="rc-skills"><span class="skill-tag">ML</span><span class="skill-tag">TensorFlow</span><span class="skill-tag">SQL</span></div>
+      <div class="rc-score"><div class="score-bar"><div class="score-fill" style="width:78%;background:#4ade80;"></div></div><b>78% Match</b></div>
+    </div>
+    <div class="resume-card card-3">
+      <div class="rc-header"><div class="rc-avatar" style="background:#f59e0b;">RV</div><div><b>Rahul Verma</b><br/><small>Backend Engineer</small></div></div>
+      <div class="rc-skills"><span class="skill-tag">Node.js</span><span class="skill-tag">Docker</span><span class="skill-tag">GCP</span></div>
+      <div class="rc-score"><div class="score-bar"><div class="score-fill" style="width:65%;background:#f59e0b;"></div></div><b>65% Match</b></div>
+    </div>
+    <div class="ai-badge">🤖 AI Ranked</div>
+  </div>
+</section>
+
+<!-- ── FEATURES ──────────────────────────────── -->
+<section id="features" class="features">
+  <h2 class="section-title">Why RecruitAI?</h2>
+  <p class="section-sub">Everything a recruiter needs to screen hundreds of resumes in minutes.</p>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">📄</div>
+      <h3>Smart Resume Parsing</h3>
+      <p>Automatically extracts name, email, phone, skills, education, and experience from PDF and Word resumes.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🧠</div>
+      <h3>AI Matching Engine</h3>
+      <p>Uses TF-IDF vectorization and cosine similarity to measure how well each resume matches a job description.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>Automatic Ranking</h3>
+      <p>Candidates are ranked 1 to N by match score. Top scorers are auto-shortlisted for recruiter review.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">☁️</div>
+      <h3>Cloud-Based Storage</h3>
+      <p>All resumes and results stored securely in the cloud. Access from anywhere, anytime.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Recruiter Dashboard</h3>
+      <p>Visual dashboard showing match scores, skills breakdown, shortlist management, and analytics.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <h3>Bulk Upload</h3>
+      <p>Upload and screen multiple resumes at once. Process 100 resumes in seconds, not hours.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ───────────────────────────── -->
+<section id="how-it-works" class="how-it-works">
+  <h2 class="section-title">How It Works</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h3>Post a Job</h3><p>Enter job title, description, and required skills.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">2</div><h3>Upload Resumes</h3><p>Bulk upload PDF or Word resumes for the job.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">3</div><h3>AI Screens</h3><p>The engine parses, scores, and ranks every candidate.</p></div>
+    <div class="step-arrow">→</div>
+    <div class="step"><div class="step-num">4</div><h3>Review Results</h3><p>Dashboard shows ranked shortlist ready for interview.</p></div>
+  </div>
+</section>
+
+<!-- ── TECH STACK ─────────────────────────────── -->
+<section class="tech-stack">
+  <h2 class="section-title">Technology Stack</h2>
+  <div class="tech-grid">
+    <div class="tech-item"><div class="tech-logo">🐍</div><span>Python Flask</span></div>
+    <div class="tech-item"><div class="tech-logo">🤖</div><span>TF-IDF AI</span></div>
+    <div class="tech-item"><div class="tech-logo">🗄️</div><span>SQLite DB</span></div>
+    <div class="tech-item"><div class="tech-logo">☁️</div><span>Cloud Hosting</span></div>
+    <div class="tech-item"><div class="tech-logo">📑</div><span>PDF Parser</span></div>
+    <div class="tech-item"><div class="tech-logo">⚡</div><span>REST API</span></div>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────── -->
+<footer class="footer">
+  <p>Cloud-Based AI Resume Screening System · Kishan Kumar Sharma · O24MCA110066</p>
+  <p style="opacity:.6;font-size:.85rem;margin-top:.4rem;">MCA Final Year Project · Mentor: Hari Krishna</p>
+</footer>
+
+<script>
+  // Load live stats
+  fetch('/api/stats').then(r => r.json()).then(d => {
+    document.getElementById('stat-jobs').textContent = d.total_jobs;
+    document.getElementById('stat-candidates').textContent = d.total_candidates;
+    document.getElementById('stat-shortlisted').textContent = d.shortlisted;
+    document.getElementById('stat-score').textContent = (d.average_score || 0).toFixed(1) + '%';
+  }).catch(() => {
+    document.getElementById('stat-jobs').textContent = '2';
+    document.getElementById('stat-candidates').textContent = '0';
+    document.getElementById('stat-shortlisted').textContent = '0';
+    document.getElementById('stat-score').textContent = '0%';
+  });
+
+  function toggleNav() {
+    document.querySelector('.nav-links').classList.toggle('open');
+  }
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>
